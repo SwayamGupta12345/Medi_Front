@@ -9,7 +9,9 @@ import "reactflow/dist/style.css"
 // Import Tailwind CSS
 import "./index.css"
 
-const API_BASE = "http://localhost:8000"
+// const API_BASE = "http://localhost:8000"
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const generateBookColorMap = (results) => {
   const uniqueBooks = [...new Set(results.map((r) => r.book))]
   const colors = [

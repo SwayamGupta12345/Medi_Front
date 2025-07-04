@@ -16,7 +16,8 @@ import "reactflow/dist/style.css";
 import Modal from "react-modal";
 import { useRouter } from "next/navigation";
 
-const API_BASE = "http://localhost:8000";
+// const API_BASE = "http://localhost:8000"
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const generateBookColorMap = (results) => {
   const uniqueBooks = [...new Set(results.map((r) => r.book))];
