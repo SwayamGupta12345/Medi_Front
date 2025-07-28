@@ -19,26 +19,26 @@ import { useRouter } from "next/navigation";
 // const API_BASE = "http://localhost:8000"
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-// const generateBookColorMap = (results) => {
-//   const uniqueBooks = [...new Set(results.map((r) => r.book))];
-//   const colors = [
-//     "#e0f7fa",
-//     "#fce4ec",
-//     "#fff9c4",
-//     "#f3e5f5",
-//     "#e8f5e9",
-//     "#ede7f6",
-//     "#ffebee",
-//     "#e1f5fe",
-//     "#fbe9e7",
-//     "#f9fbe7",
-//   ];
-//   const map = {};
-//   uniqueBooks.forEach((book, index) => {
-//     map[book] = colors[index % colors.length];
-//   });
-//   return map;
-// };
+const generateBookColorMap = (results) => {
+  const uniqueBooks = [...new Set(results.map((r) => r.book))];
+  const colors = [
+    "#e0f7fa",
+    "#fce4ec",
+    "#fff9c4",
+    "#f3e5f5",
+    "#e8f5e9",
+    "#ede7f6",
+    "#ffebee",
+    "#e1f5fe",
+    "#fbe9e7",
+    "#f9fbe7",
+  ];
+  const map = {};
+  uniqueBooks.forEach((book, index) => {
+    map[book] = colors[index % colors.length];
+  });
+  return map;
+};
 
 export default function PDFChatAssistant() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
