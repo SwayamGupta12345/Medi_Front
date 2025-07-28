@@ -16,8 +16,8 @@ import "reactflow/dist/style.css";
 import Modal from "react-modal";
 import { useRouter } from "next/navigation";
 
-// const API_BASE = "http://localhost:8000"
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = "http://localhost:8000";
+// const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const generateBookColorMap = (results) => {
   const uniqueBooks = [...new Set(results.map((r) => r.book))];
@@ -66,24 +66,24 @@ export default function PDFChatAssistant() {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const themes = {
-    teal: "bg-teal-500 hover:bg-teal-600 text-white",
-    pink: "bg-pink-600 hover:bg-pink-700 text-white",
-    green: "bg-green-500 hover:bg-green-600 text-white",
-    blue: "bg-blue-500 hover:bg-blue-600 text-white",
-    purple: "bg-purple-600 hover:bg-purple-700 text-white",
-    orange: "bg-orange-500 hover:bg-orange-600 text-white",
-    Dark: "bg-gray-800 hover:bg-gray-900 text-white",
-    Light: "bg-gray-100 hover:bg-gray-200 text-gray-800",
-  };
-const [themeKey, setThemeKey] = useState("teal");
- const theme = themes[themeKey];
-  const cycleThemes = () => {
-  const keys = Object.keys(themes);
-  const currentIndex = keys.indexOf(themeKey);
-  const nextIndex = (currentIndex + 1) % keys.length;
-  setThemeKey(keys[nextIndex]);
-};
+  // const themes = {
+  //   teal: "bg-teal-500 hover:bg-teal-600 text-white",
+  //   pink: "bg-pink-600 hover:bg-pink-700 text-white",
+  //   green: "bg-green-500 hover:bg-green-600 text-white",
+  //   blue: "bg-blue-500 hover:bg-blue-600 text-white",
+  //   purple: "bg-purple-600 hover:bg-purple-700 text-white",
+  //   orange: "bg-orange-500 hover:bg-orange-600 text-white",
+  //   Dark: "bg-gray-800 hover:bg-gray-900 text-white",
+  //   Light: "bg-gray-100 hover:bg-gray-200 text-gray-800",
+  // };
+  // const [themeKey, setThemeKey] = useState("teal");
+  // const theme = themes[themeKey];
+  // const cycleThemes = () => {
+  //   const keys = Object.keys(themes);
+  //   const currentIndex = keys.indexOf(themeKey);
+  //   const nextIndex = (currentIndex + 1) % keys.length;
+  //   setThemeKey(keys[nextIndex]);
+  // };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -552,7 +552,6 @@ const [themeKey, setThemeKey] = useState("teal");
           <div className="flex items-center gap-4">
             <button
               className={`p-2 flex items-center gap-2 rounded transition text-black border border-gray-300 hover:bg-gray-100`}
-
               // className={`p-2 flex items-center gap-2 rounded transition text-black ${theme}`}
               onClick={() => router.push("/Myfiles")}
             >
@@ -565,28 +564,28 @@ const [themeKey, setThemeKey] = useState("teal");
             >
               <User className="h-6 w-6" />
             </button>
-            <button
+            {/* <button
               className="p-2 bg-gray-200 hover:bg-gray-300 rounded transition border border-gray-300"
               onClick={cycleThemes}
               title="Change Theme"
             >
               <SunMoon className="h-5 w-5 text-gray-800" />
-            </button>
+            </button> */}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${
+              className={`flex rounded-lg ${
                 message.type === "user" ? "justify-end" : "justify-start"
               }`}
             >
               <div
-                className={`max-w-[90%] w-fit p-4 rounded-2xl shadow-sm ${
+                className={`max-w-[90%] w-fit p-4 shadow-sm ${
                   message.type === "user"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-gray-800 border"
+                    ? "bg-blue-500 text-white rounded-[100px] rounded-br-none"
+                    : "bg-white text-gray-800 border rounded-[100px] rounded-bl-none"
                 }`}
               >
                 <p className="text-sm leading-relaxed">{message.content}</p>
@@ -607,7 +606,7 @@ const [themeKey, setThemeKey] = useState("teal");
                         message.results.map((res, idx) => (
                           <div
                             key={idx}
-                            className="p-2 border rounded bg-gray-100 text-sm"
+                            className="p-2 border-rounded bg-gray-100 text-sm"
                           >
                             <p>
                               <strong>📘 Book:</strong> {res.book}

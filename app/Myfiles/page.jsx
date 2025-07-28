@@ -19,26 +19,26 @@ import { useRouter } from "next/navigation";
 // const API_BASE = "http://localhost:8000"
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const generateBookColorMap = (results) => {
-  const uniqueBooks = [...new Set(results.map((r) => r.book))];
-  const colors = [
-    "#e0f7fa",
-    "#fce4ec",
-    "#fff9c4",
-    "#f3e5f5",
-    "#e8f5e9",
-    "#ede7f6",
-    "#ffebee",
-    "#e1f5fe",
-    "#fbe9e7",
-    "#f9fbe7",
-  ];
-  const map = {};
-  uniqueBooks.forEach((book, index) => {
-    map[book] = colors[index % colors.length];
-  });
-  return map;
-};
+// const generateBookColorMap = (results) => {
+//   const uniqueBooks = [...new Set(results.map((r) => r.book))];
+//   const colors = [
+//     "#e0f7fa",
+//     "#fce4ec",
+//     "#fff9c4",
+//     "#f3e5f5",
+//     "#e8f5e9",
+//     "#ede7f6",
+//     "#ffebee",
+//     "#e1f5fe",
+//     "#fbe9e7",
+//     "#f9fbe7",
+//   ];
+//   const map = {};
+//   uniqueBooks.forEach((book, index) => {
+//     map[book] = colors[index % colors.length];
+//   });
+//   return map;
+// };
 
 export default function PDFChatAssistant() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -66,24 +66,24 @@ export default function PDFChatAssistant() {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const themes = {
-    teal: "bg-teal-500 hover:bg-teal-600 text-white",
-    pink: "bg-pink-600 hover:bg-pink-700 text-white",
-    green: "bg-green-500 hover:bg-green-600 text-white",
-    blue: "bg-blue-500 hover:bg-blue-600 text-white",
-    purple: "bg-purple-600 hover:bg-purple-700 text-white",
-    orange: "bg-orange-500 hover:bg-orange-600 text-white",
-    Dark: "bg-gray-800 hover:bg-gray-900 text-white",
-    Light: "bg-gray-100 hover:bg-gray-200 text-gray-800",
-  };
-const [themeKey, setThemeKey] = useState("teal");
- const theme = themes[themeKey];
-  const cycleThemes = () => {
-  const keys = Object.keys(themes);
-  const currentIndex = keys.indexOf(themeKey);
-  const nextIndex = (currentIndex + 1) % keys.length;
-  setThemeKey(keys[nextIndex]);
-};
+//   const themes = {
+//     teal: "bg-teal-500 hover:bg-teal-600 text-white",
+//     pink: "bg-pink-600 hover:bg-pink-700 text-white",
+//     green: "bg-green-500 hover:bg-green-600 text-white",
+//     blue: "bg-blue-500 hover:bg-blue-600 text-white",
+//     purple: "bg-purple-600 hover:bg-purple-700 text-white",
+//     orange: "bg-orange-500 hover:bg-orange-600 text-white",
+//     Dark: "bg-gray-800 hover:bg-gray-900 text-white",
+//     Light: "bg-gray-100 hover:bg-gray-200 text-gray-800",
+//   };
+// const [themeKey, setThemeKey] = useState("teal");
+//  const theme = themes[themeKey];
+//   const cycleThemes = () => {
+//   const keys = Object.keys(themes);
+//   const currentIndex = keys.indexOf(themeKey);
+//   const nextIndex = (currentIndex + 1) % keys.length;
+//   setThemeKey(keys[nextIndex]);
+// };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -568,13 +568,13 @@ const [themeKey, setThemeKey] = useState("teal");
             >
               <User className="h-6 w-6" />
             </button>
-            <button
+            {/* <button
               className="p-2 bg-gray-200 hover:bg-gray-300 rounded transition border border-gray-300"
               onClick={cycleThemes}
               title="Change Theme"
             >
               <SunMoon className="h-5 w-5 text-gray-800" />
-            </button>
+            </button> */}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
