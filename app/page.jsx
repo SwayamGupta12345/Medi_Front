@@ -805,12 +805,20 @@ export default function PDFChatAssistant() {
 
   const handleFileSelect = (files) => {
     if (!files || files.length === 0) return;
-    const validFiles = Array.from(files).filter((f) => f.type === "application/pdf");
+    const validFiles = Array.from(files).filter(
+      (f) => f.type === "application/pdf",
+    );
     const existingKeys = new Set(pendingFiles.map((f) => f.name + f.size));
     const newFiles = validFiles
       .filter((f) => !existingKeys.has(f.name + f.size))
-      .map((f) => ({ file: f, name: f.name, size: f.size, id: Math.random().toString(36).substr(2, 9) }));
-    if (newFiles.length < validFiles.length) alert("Some files were already added.");
+      .map((f) => ({
+        file: f,
+        name: f.name,
+        size: f.size,
+        id: Math.random().toString(36).substr(2, 9),
+      }));
+    if (newFiles.length < validFiles.length)
+      alert("Some files were already added.");
     setPendingFiles((prev) => [...prev, ...newFiles]);
   };
 
@@ -821,7 +829,10 @@ export default function PDFChatAssistant() {
     try {
       const res = await axios.post(`${API_BASE}/upload/`, formData);
       setUploadedFiles((prev) => [...prev, fileObj]);
-      setUploadedTitles((prev) => [...prev, ...(res.data.uploaded_titles || [])]);
+      setUploadedTitles((prev) => [
+        ...prev,
+        ...(res.data.uploaded_titles || []),
+      ]);
       setPendingFiles((prev) => prev.filter((f) => f.id !== fileObj.id));
     } catch {
       alert(`Error uploading "${fileObj.name}".`);
@@ -845,18 +856,35 @@ export default function PDFChatAssistant() {
     setUploading(false);
   };
 
-  const handleDragOver = (e) => { e.preventDefault(); setIsDragOver(true); };
-  const handleDragLeave = (e) => { e.preventDefault(); setIsDragOver(false); };
-  const handleDrop = (e) => { e.preventDefault(); setIsDragOver(false); handleFileSelect(e.dataTransfer.files); };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    handleFileSelect(e.dataTransfer.files);
+  };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
-    const userMessage = { id: Math.random().toString(36).substr(2, 9), type: "user", content: inputValue, timestamp: new Date() };
+    const userMessage = {
+      id: Math.random().toString(36).substr(2, 9),
+      type: "user",
+      content: inputValue,
+      timestamp: new Date(),
+    };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setQuerying(true);
     try {
-      const res = await axios.post(`${API_BASE}/query/`, { question: inputValue });
+      const res = await axios.post(`${API_BASE}/query/`, {
+        question: inputValue,
+      });
       const assistantMessage = {
         id: Math.random().toString(36).substr(2, 9),
         type: "assistant",
@@ -872,34 +900,60 @@ export default function PDFChatAssistant() {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   const generateGraphNodes = (results) => {
     const colorMap = generateBookColorMap(results);
     const root = {
-      id: "0", data: { label: "Query" },
+      id: "0",
+      data: { label: "Query" },
       position: { x: 300, y: 0 },
-      style: { background: "#1E40AF", color: "#fff", fontWeight: 600, padding: 10, borderRadius: 8, border: "none" },
+      style: {
+        background: "#1E40AF",
+        color: "#fff",
+        fontWeight: 600,
+        padding: 10,
+        borderRadius: 8,
+        border: "none",
+      },
     };
     const nodes = results.map((res, i) => ({
       id: `${i + 1}`,
-      data: { label: `${res.book}: "${res.text.slice(0, 45)}..."`, fullText: res.text },
+      data: {
+        label: `${res.book}: "${res.text.slice(0, 45)}..."`,
+        fullText: res.text,
+      },
       position: { x: (i % 3) * 260 + 60, y: Math.floor(i / 3) * 150 + 120 },
       style: {
-        padding: 10, border: `1px solid ${colorMap[res.book]?.border || "#e5e7eb"}`,
-        borderRadius: 8, background: colorMap[res.book]?.bg || "#f9fafb",
-        fontSize: 11, cursor: "pointer", color: colorMap[res.book]?.text || "#111",
+        padding: 10,
+        border: `1px solid ${colorMap[res.book]?.border || "#e5e7eb"}`,
+        borderRadius: 8,
+        background: colorMap[res.book]?.bg || "#f9fafb",
+        fontSize: 11,
+        cursor: "pointer",
+        color: colorMap[res.book]?.text || "#111",
       },
     }));
     return [root, ...nodes];
   };
 
   const generateGraphEdges = (results) =>
-    results.map((_, i) => ({ id: `e0-${i + 1}`, source: "0", target: `${i + 1}`, style: { stroke: "#94a3b8" } }));
+    results.map((_, i) => ({
+      id: `e0-${i + 1}`,
+      source: "0",
+      target: `${i + 1}`,
+      style: { stroke: "#94a3b8" },
+    }));
 
   const handleNodeClick = (_, node) => {
-    if (node.data.fullText) { setSelectedText(node.data.fullText); setModalIsOpen(true); }
+    if (node.data.fullText) {
+      setSelectedText(node.data.fullText);
+      setModalIsOpen(true);
+    }
   };
 
   const formatSize = (bytes) => {
@@ -907,24 +961,373 @@ export default function PDFChatAssistant() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  return (
-    <div style={{ display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, system-ui, sans-serif" }}>
+  // return (
+  //   <div style={{ display: "flex", height: "100vh", background: "#f8fafc", fontFamily: "Inter, system-ui, sans-serif" }}>
 
-      {/* ── Sidebar ── */}
-      <div style={{
-        width: isSidebarOpen ? 272 : 0,
-        minWidth: isSidebarOpen ? 272 : 0,
-        overflow: "hidden",
-        transition: "width 0.25s ease, min-width 0.25s ease",
-        background: "#ffffff",
-        borderRight: "1px solid #e2e8f0",
+  //     {/* ── Sidebar ── */}
+  //     <div style={{
+  //       width: isSidebarOpen ? 272 : 0,
+  //       minWidth: isSidebarOpen ? 272 : 0,
+  //       overflow: "hidden",
+  //       transition: "width 0.25s ease, min-width 0.25s ease",
+  //       background: "#ffffff",
+  //       borderRight: "1px solid #e2e8f0",
+  //       display: "flex",
+  //       flexDirection: "column",
+  //     }}>
+  //       {/* Drop zone */}
+  //       <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid #f1f5f9" }}>
+  //         <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>
+  //           Upload PDFs
+  //         </p>
+  //         <div
+  //           onClick={() => fileInputRef.current?.click()}
+  //           onDragOver={handleDragOver}
+  //           onDragLeave={handleDragLeave}
+  //           onDrop={handleDrop}
+  //           style={{
+  //             border: `1.5px dashed ${isDragOver ? "#3b82f6" : "#cbd5e1"}`,
+  //             borderRadius: 10,
+  //             padding: "20px 12px",
+  //             textAlign: "center",
+  //             cursor: "pointer",
+  //             background: isDragOver ? "#eff6ff" : "#f8fafc",
+  //             transition: "all 0.15s",
+  //           }}
+  //         >
+  //           <Upload size={20} color={isDragOver ? "#3b82f6" : "#94a3b8"} style={{ margin: "0 auto 8px" }} />
+  //           <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.4 }}>Drag & drop PDFs<br />or click to browse</p>
+  //           <input ref={fileInputRef} type="file" multiple accept="application/pdf" style={{ display: "none" }} onChange={(e) => handleFileSelect(e.target.files)} />
+  //         </div>
+  //       </div>
+
+  //       {/* Pending files */}
+  //       {pendingFiles.length > 0 && (
+  //         <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9" }}>
+  //           <p style={{ fontSize: 11, fontWeight: 600, color: "#f59e0b", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
+  //             Pending · {pendingFiles.length}
+  //           </p>
+  //           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+  //             {pendingFiles.map((f) => (
+  //               <div key={f.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8 }}>
+  //                 <File size={14} color="#d97706" style={{ flexShrink: 0 }} />
+  //                 <span style={{ flex: 1, fontSize: 12, color: "#92400e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</span>
+  //                 <span style={{ fontSize: 11, color: "#b45309", flexShrink: 0 }}>{formatSize(f.size)}</span>
+  //                 <button onClick={() => handleSingleUpload(f)} disabled={uploading} title="Upload this file"
+  //                   style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: "#2563eb" }}>
+  //                   <Upload size={13} />
+  //                 </button>
+  //                 <button onClick={() => setPendingFiles((prev) => prev.filter((x) => x.id !== f.id))} title="Remove"
+  //                   style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: "#dc2626" }}>
+  //                   <FileX size={13} />
+  //                 </button>
+  //               </div>
+  //             ))}
+  //           </div>
+  //           <button onClick={handleUploadSubmit} disabled={uploading}
+  //             style={{
+  //               marginTop: 10, width: "100%", padding: "8px 0", borderRadius: 8,
+  //               background: uploading ? "#e2e8f0" : "#2563eb", color: uploading ? "#94a3b8" : "#fff",
+  //               border: "none", fontSize: 12, fontWeight: 600, cursor: uploading ? "not-allowed" : "pointer",
+  //               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+  //             }}>
+  //             <Upload size={13} /> {uploading ? "Uploading..." : "Submit all files"}
+  //           </button>
+  //         </div>
+  //       )}
+
+  //       {/* Uploaded files */}
+  //       <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+  //         {uploadedFiles.length > 0 && (
+  //           <>
+  //             <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
+  //               Uploaded · {uploadedFiles.length}
+  //             </p>
+  //             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+  //               {uploadedFiles.map((f) => (
+  //                 <div key={f.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8 }}>
+  //                   <File size={14} color="#16a34a" style={{ flexShrink: 0 }} />
+  //                   <span style={{ flex: 1, fontSize: 12, color: "#14532d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</span>
+  //                   <span style={{ fontSize: 11, color: "#15803d", flexShrink: 0 }}>{formatSize(f.size)}</span>
+  //                 </div>
+  //               ))}
+  //             </div>
+  //             <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Filter by file</p>
+  //             <select value={selectedFile} onChange={(e) => setSelectedFile(e.target.value)}
+  //               style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", color: "#374151", outline: "none" }}>
+  //               <option value="">All uploaded files</option>
+  //               {uploadedFiles.map((f) => <option key={f.id} value={f.name}>{f.name}</option>)}
+  //             </select>
+  //           </>
+  //         )}
+  //         {uploadedFiles.length === 0 && pendingFiles.length === 0 && (
+  //           <p style={{ fontSize: 12, color: "#cbd5e1", textAlign: "center", marginTop: 24, lineHeight: 1.6 }}>
+  //             No files yet.<br />Upload a PDF to get started.
+  //           </p>
+  //         )}
+  //       </div>
+  //     </div>
+
+  //     {/* ── Main ── */}
+  //     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+
+  //       {/* Topbar */}
+  //       <div style={{ height: 56, background: "#fff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
+  //         <button onClick={() => setIsSidebarOpen((p) => !p)}
+  //           style={{ background: "none", border: "none", cursor: "pointer", padding: 6, borderRadius: 8, display: "flex", color: "#64748b" }}>
+  //           <Menu size={20} />
+  //         </button>
+  //         <span style={{ fontSize: 15, fontWeight: 600, color: "#0f172a", flex: 1 }}>PDF Intelligence Assistant</span>
+  //         <button onClick={() => router.push("/Myfiles")}
+  //           style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", border: "1px solid #e2e8f0", borderRadius: 20, fontSize: 13, color: "#374151", background: "#fff", cursor: "pointer", fontWeight: 500 }}>
+  //           <ScanText size={15} /> Talk with my PDF
+  //         </button>
+  //         <button style={{ background: "none", border: "1px solid #e2e8f0", cursor: "pointer", padding: 7, borderRadius: 8, display: "flex", color: "#64748b" }}>
+  //           <User size={18} />
+  //         </button>
+  //       </div>
+
+  //       {/* Chat */}
+  //       <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 0" }}>
+  //         {messages.length === 0 ? (
+  //           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 10, paddingBottom: 60 }}>
+  //             <div style={{ width: 48, height: 48, background: "#eff6ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+  //               <ScanText size={24} color="#2563eb" />
+  //             </div>
+  //             <p style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>Ask anything about your PDFs</p>
+  //             <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
+  //               Upload documents from the sidebar, then type your question below.
+  //             </p>
+  //           </div>
+  //         ) : (
+  //           <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 24 }}>
+  //             {messages.map((msg) => {
+  //               const bookColorMap = generateBookColorMap(msg.results || []);
+  //               return (
+  //                 <div key={msg.id} style={{ display: "flex", justifyContent: msg.type === "user" ? "flex-end" : "flex-start", gap: 10 }}>
+  //                   {msg.type === "assistant" && (
+  //                     <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#eff6ff", border: "1px solid #bfdbfe", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+  //                       <ScanText size={14} color="#2563eb" />
+  //                     </div>
+  //                   )}
+  //                   <div style={{ maxWidth: "78%" }}>
+  //                     <div style={{
+  //                       padding: "10px 14px",
+  //                       borderRadius: msg.type === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+  //                       background: msg.type === "user" ? "#2563eb" : "#ffffff",
+  //                       border: msg.type === "assistant" ? "1px solid #e2e8f0" : "none",
+  //                       color: msg.type === "user" ? "#fff" : "#1e293b",
+  //                       fontSize: 13,
+  //                       lineHeight: 1.55,
+  //                       boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+  //                     }}>
+  //                       {msg.content}
+  //                     </div>
+
+  //                     {/* Result cards */}
+  //                     {msg.type === "assistant" && Array.isArray(msg.results) && (
+  //                       <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+  //                         {msg.results.length === 0 ? (
+  //                           <p style={{ fontSize: 12, color: "#94a3b8" }}>No results found.</p>
+  //                         ) : (
+  //                           msg.results.map((res, idx) => {
+  //                             const c = bookColorMap[res.book] || BOOK_COLORS[0];
+  //                             return (
+  //                               <div key={idx} style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+  //                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+  //                                   <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
+  //                                     {res.book}
+  //                                   </span>
+  //                                   <span style={{ fontSize: 11, color: "#94a3b8" }}>Score: {res.score.toFixed(3)}</span>
+  //                                 </div>
+  //                                 <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{res.text}</p>
+  //                               </div>
+  //                             );
+  //                           })
+  //                         )}
+  //                         {msg.results.length > 0 && (
+  //                           <button onClick={() => { setGraphData(msg.results); setGraphModalOpen(true); }}
+  //                             style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", border: "1px solid #e2e8f0", borderRadius: 20, fontSize: 12, color: "#374151", background: "#fff", cursor: "pointer", fontWeight: 500 }}>
+  //                             📊 View knowledge graph
+  //                           </button>
+  //                         )}
+  //                       </div>
+  //                     )}
+  //                   </div>
+  //                   {msg.type === "user" && (
+  //                     <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+  //                       <User size={14} color="#fff" />
+  //                     </div>
+  //                   )}
+  //                 </div>
+  //               );
+  //             })}
+  //             {querying && (
+  //               <div style={{ display: "flex", gap: 10 }}>
+  //                 <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#eff6ff", border: "1px solid #bfdbfe", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+  //                   <ScanText size={14} color="#2563eb" />
+  //                 </div>
+  //                 <div style={{ padding: "12px 16px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "18px 18px 18px 4px", display: "flex", gap: 4, alignItems: "center" }}>
+  //                   {[0, 0.15, 0.3].map((d, i) => (
+  //                     <span key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "#cbd5e1", display: "inline-block", animation: `pulse 1.2s ${d}s infinite` }} />
+  //                   ))}
+  //                 </div>
+  //               </div>
+  //             )}
+  //             <div ref={messagesEndRef} />
+  //           </div>
+  //         )}
+  //       </div>
+
+  //       {/* Input bar */}
+  //       <div style={{ padding: "16px 24px 20px", background: "#fff", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
+  //         <div style={{ display: "flex", alignItems: "flex-end", gap: 10, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 14, padding: "10px 12px 10px 16px", transition: "border-color 0.15s" }}>
+  //           <textarea
+  //             value={inputValue}
+  //             onChange={(e) => {
+  //               setInputValue(e.target.value);
+  //               e.target.style.height = "auto";
+  //               e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+  //             }}
+  //             onKeyPress={handleKeyPress}
+  //             placeholder="Ask a question about your documents..."
+  //             rows={1}
+  //             style={{ flex: 1, border: "none", outline: "none", resize: "none", fontSize: 13, background: "transparent", color: "#1e293b", fontFamily: "inherit", lineHeight: 1.6, maxHeight: 120 }}
+  //           />
+  //           <button
+  //             onClick={handleSendMessage}
+  //             disabled={!inputValue.trim() || querying}
+  //             style={{
+  //               padding: "8px 16px", borderRadius: 10, border: "none",
+  //               background: inputValue.trim() && !querying ? "#2563eb" : "#e2e8f0",
+  //               color: inputValue.trim() && !querying ? "#fff" : "#94a3b8",
+  //               cursor: inputValue.trim() && !querying ? "pointer" : "not-allowed",
+  //               display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, flexShrink: 0, transition: "all 0.15s",
+  //             }}>
+  //             <Send size={14} /> Send
+  //           </button>
+  //         </div>
+  //       </div>
+  //     </div>
+
+  //     {/* ── Graph Modal ── */}
+  //     <Modal isOpen={graphModalOpen} onRequestClose={() => setGraphModalOpen(false)} contentLabel="Knowledge Graph"
+  //       style={{
+  //         overlay: { background: "rgba(15,23,42,0.5)", zIndex: 1000 },
+  //         content: { top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "90%", maxWidth: 1000, height: "80%", padding: 0, borderRadius: 16, border: "1px solid #e2e8f0", overflow: "hidden" },
+  //       }}>
+  //       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+  //         <div style={{ padding: "16px 20px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+  //           <p style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>Knowledge Graph</p>
+  //           <button onClick={() => setGraphModalOpen(false)}
+  //             style={{ padding: "5px 14px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12, background: "#fff", cursor: "pointer", color: "#374151", fontWeight: 500 }}>
+  //             Close
+  //           </button>
+  //         </div>
+  //         <div style={{ flex: 1 }}>
+  //           <ReactFlow nodes={generateGraphNodes(graphData)} edges={generateGraphEdges(graphData)} fitView onNodeClick={handleNodeClick}>
+  //             <Background color="#f1f5f9" gap={20} />
+  //             <Controls />
+  //           </ReactFlow>
+  //         </div>
+  //       </div>
+  //     </Modal>
+
+  //     {/* ── Snippet Modal ── */}
+  //     <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} contentLabel="Full Snippet"
+  //       style={{
+  //         overlay: { background: "rgba(15,23,42,0.5)", zIndex: 1000 },
+  //         content: { top: "50%", left: "50%", transform: "translate(-50%,-50%)", maxWidth: 560, width: "90%", padding: 0, borderRadius: 14, border: "1px solid #e2e8f0" },
+  //       }}>
+  //       <div style={{ padding: "20px 24px" }}>
+  //         <p style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 12 }}>Full snippet</p>
+  //         <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>{selectedText}</p>
+  //         <button onClick={() => setModalIsOpen(false)}
+  //           style={{ marginTop: 20, padding: "7px 18px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, background: "#fff", cursor: "pointer", fontWeight: 500, color: "#374151" }}>
+  //           Close
+  //         </button>
+  //       </div>
+  //     </Modal>
+
+  //     <style>{`
+  //       @keyframes pulse {
+  //         0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  //         40% { opacity: 1; transform: scale(1); }
+  //       }
+  //       * { box-sizing: border-box; }
+  //       ::-webkit-scrollbar { width: 4px; }
+  //       ::-webkit-scrollbar-track { background: transparent; }
+  //       ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+  //       textarea::placeholder { color: #94a3b8; }
+  //     `}</style>
+  //   </div>
+  // );
+  return (
+    <div
+      style={{
         display: "flex",
-        flexDirection: "column",
-      }}>
+        height: "100vh",
+        background: "#FAF8F3",
+        fontFamily: "'Inter', system-ui, sans-serif",
+      }}
+    >
+      {/* ── Sidebar : "the shelf" ── */}
+      <div
+        style={{
+          width: isSidebarOpen ? 280 : 0,
+          minWidth: isSidebarOpen ? 280 : 0,
+          overflow: "hidden",
+          transition:
+            "width 0.3s cubic-bezier(0.4,0,0.2,1), min-width 0.3s cubic-bezier(0.4,0,0.2,1)",
+          background: "#1B1B2F",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Brand mark */}
+        <div
+          style={{
+            padding: "22px 20px 18px",
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: 17,
+              fontWeight: 600,
+              color: "#F4E9D8",
+              letterSpacing: "0.01em",
+              margin: 0,
+            }}
+          >
+            The Reading Room
+          </p>
+          <p
+            style={{
+              fontSize: 11,
+              color: "#8B8AA3",
+              marginTop: 3,
+              letterSpacing: "0.04em",
+            }}
+          >
+            Document intelligence
+          </p>
+        </div>
+
         {/* Drop zone */}
-        <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid #f1f5f9" }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>
-            Upload PDFs
+        <div style={{ padding: "18px 20px 16px" }}>
+          <p
+            style={{
+              fontSize: 10.5,
+              fontWeight: 600,
+              color: "#8B8AA3",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              marginBottom: 10,
+            }}
+          >
+            Add to shelf
           </p>
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -932,177 +1335,598 @@ export default function PDFChatAssistant() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             style={{
-              border: `1.5px dashed ${isDragOver ? "#3b82f6" : "#cbd5e1"}`,
-              borderRadius: 10,
-              padding: "20px 12px",
+              border: `1px dashed ${isDragOver ? "#C9962B" : "rgba(255,255,255,0.18)"}`,
+              borderRadius: 4,
+              padding: "22px 12px",
               textAlign: "center",
               cursor: "pointer",
-              background: isDragOver ? "#eff6ff" : "#f8fafc",
+              background: isDragOver
+                ? "rgba(201,150,43,0.08)"
+                : "rgba(255,255,255,0.02)",
               transition: "all 0.15s",
             }}
           >
-            <Upload size={20} color={isDragOver ? "#3b82f6" : "#94a3b8"} style={{ margin: "0 auto 8px" }} />
-            <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.4 }}>Drag & drop PDFs<br />or click to browse</p>
-            <input ref={fileInputRef} type="file" multiple accept="application/pdf" style={{ display: "none" }} onChange={(e) => handleFileSelect(e.target.files)} />
+            <Upload
+              size={18}
+              color={isDragOver ? "#C9962B" : "#6B6A85"}
+              style={{ margin: "0 auto 8px" }}
+            />
+            <p style={{ fontSize: 11.5, color: "#9998AD", lineHeight: 1.5 }}>
+              Drag & drop PDFs
+              <br />
+              or click to browse
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="application/pdf"
+              style={{ display: "none" }}
+              onChange={(e) => handleFileSelect(e.target.files)}
+            />
           </div>
         </div>
 
         {/* Pending files */}
         {pendingFiles.length > 0 && (
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid #f1f5f9" }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "#f59e0b", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
+          <div style={{ padding: "0 20px 16px" }}>
+            <p
+              style={{
+                fontSize: 10.5,
+                fontWeight: 600,
+                color: "#C9962B",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: 8,
+              }}
+            >
               Pending · {pendingFiles.length}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {pendingFiles.map((f) => (
-                <div key={f.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8 }}>
-                  <File size={14} color="#d97706" style={{ flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontSize: 12, color: "#92400e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</span>
-                  <span style={{ fontSize: 11, color: "#b45309", flexShrink: 0 }}>{formatSize(f.size)}</span>
-                  <button onClick={() => handleSingleUpload(f)} disabled={uploading} title="Upload this file"
-                    style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: "#2563eb" }}>
-                    <Upload size={13} />
+                <div
+                  key={f.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 10px",
+                    background: "rgba(201,150,43,0.08)",
+                    borderLeft: "2px solid #C9962B",
+                    borderRadius: 2,
+                  }}
+                >
+                  <File size={13} color="#C9962B" style={{ flexShrink: 0 }} />
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: 11.5,
+                      color: "#E8D9BC",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {f.name}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "'IBM Plex Mono', monospace",
+                      fontSize: 10,
+                      color: "#B3A488",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {formatSize(f.size)}
+                  </span>
+                  <button
+                    onClick={() => handleSingleUpload(f)}
+                    disabled={uploading}
+                    title="Upload this file"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: 2,
+                      display: "flex",
+                      color: "#C9962B",
+                    }}
+                  >
+                    <Upload size={12} />
                   </button>
-                  <button onClick={() => setPendingFiles((prev) => prev.filter((x) => x.id !== f.id))} title="Remove"
-                    style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: "#dc2626" }}>
-                    <FileX size={13} />
+                  <button
+                    onClick={() =>
+                      setPendingFiles((prev) =>
+                        prev.filter((x) => x.id !== f.id),
+                      )
+                    }
+                    title="Remove"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: 2,
+                      display: "flex",
+                      color: "#A85C5C",
+                    }}
+                  >
+                    <FileX size={12} />
                   </button>
                 </div>
               ))}
             </div>
-            <button onClick={handleUploadSubmit} disabled={uploading}
+            <button
+              onClick={handleUploadSubmit}
+              disabled={uploading}
               style={{
-                marginTop: 10, width: "100%", padding: "8px 0", borderRadius: 8,
-                background: uploading ? "#e2e8f0" : "#2563eb", color: uploading ? "#94a3b8" : "#fff",
-                border: "none", fontSize: 12, fontWeight: 600, cursor: uploading ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              }}>
-              <Upload size={13} /> {uploading ? "Uploading..." : "Submit all files"}
+                marginTop: 10,
+                width: "100%",
+                padding: "9px 0",
+                borderRadius: 3,
+                background: uploading ? "rgba(255,255,255,0.06)" : "#C9962B",
+                color: uploading ? "#6B6A85" : "#1B1B2F",
+                border: "none",
+                fontSize: 11.5,
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                cursor: uploading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+              }}
+            >
+              <Upload size={12} />{" "}
+              {uploading ? "Uploading…" : "Submit all files"}
             </button>
           </div>
         )}
 
         {/* Uploaded files */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 16px" }}>
           {uploadedFiles.length > 0 && (
             <>
-              <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
-                Uploaded · {uploadedFiles.length}
+              <p
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: "#8B8AA3",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                }}
+              >
+                On the shelf · {uploadedFiles.length}
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 5,
+                  marginBottom: 18,
+                }}
+              >
                 {uploadedFiles.map((f) => (
-                  <div key={f.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8 }}>
-                    <File size={14} color="#16a34a" style={{ flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontSize: 12, color: "#14532d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</span>
-                    <span style={{ fontSize: 11, color: "#15803d", flexShrink: 0 }}>{formatSize(f.size)}</span>
+                  <div
+                    key={f.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "7px 10px",
+                      borderLeft: "2px solid #4C7A6D",
+                      background: "rgba(76,122,109,0.08)",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <File size={13} color="#6FA695" style={{ flexShrink: 0 }} />
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: 11.5,
+                        color: "#D6E3DE",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {f.name}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'IBM Plex Mono', monospace",
+                        fontSize: 10,
+                        color: "#8FA89E",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {formatSize(f.size)}
+                    </span>
                   </div>
                 ))}
               </div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Filter by file</p>
-              <select value={selectedFile} onChange={(e) => setSelectedFile(e.target.value)}
-                style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", color: "#374151", outline: "none" }}>
+              <p
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: "#8B8AA3",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  marginBottom: 6,
+                }}
+              >
+                Filter by file
+              </p>
+              <select
+                value={selectedFile}
+                onChange={(e) => setSelectedFile(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  fontSize: 11.5,
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 3,
+                  background: "rgba(255,255,255,0.03)",
+                  color: "#D6D5E5",
+                  outline: "none",
+                }}
+              >
                 <option value="">All uploaded files</option>
-                {uploadedFiles.map((f) => <option key={f.id} value={f.name}>{f.name}</option>)}
+                {uploadedFiles.map((f) => (
+                  <option key={f.id} value={f.name}>
+                    {f.name}
+                  </option>
+                ))}
               </select>
             </>
           )}
           {uploadedFiles.length === 0 && pendingFiles.length === 0 && (
-            <p style={{ fontSize: 12, color: "#cbd5e1", textAlign: "center", marginTop: 24, lineHeight: 1.6 }}>
-              No files yet.<br />Upload a PDF to get started.
+            <p
+              style={{
+                fontSize: 11.5,
+                color: "#4E4D66",
+                textAlign: "center",
+                marginTop: 24,
+                lineHeight: 1.7,
+              }}
+            >
+              The shelf is empty.
+              <br />
+              Upload a PDF to begin.
             </p>
           )}
         </div>
       </div>
 
       {/* ── Main ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+        }}
+      >
         {/* Topbar */}
-        <div style={{ height: 56, background: "#fff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
-          <button onClick={() => setIsSidebarOpen((p) => !p)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 6, borderRadius: 8, display: "flex", color: "#64748b" }}>
-            <Menu size={20} />
+        <div
+          style={{
+            height: 58,
+            background: "#FAF8F3",
+            borderBottom: "1px solid #E4DFD1",
+            display: "flex",
+            alignItems: "center",
+            padding: "0 22px",
+            gap: 14,
+            flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={() => setIsSidebarOpen((p) => !p)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 6,
+              borderRadius: 4,
+              display: "flex",
+              color: "#8A8570",
+            }}
+          >
+            <Menu size={19} />
           </button>
-          <span style={{ fontSize: 15, fontWeight: 600, color: "#0f172a", flex: 1 }}>PDF Intelligence Assistant</span>
-          <button onClick={() => router.push("/Myfiles")}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", border: "1px solid #e2e8f0", borderRadius: 20, fontSize: 13, color: "#374151", background: "#fff", cursor: "pointer", fontWeight: 500 }}>
-            <ScanText size={15} /> Talk with my PDF
+          <span
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: 16,
+              fontWeight: 600,
+              color: "#2A2818",
+              flex: 1,
+            }}
+          >
+            PDF Intelligence Assistant
+          </span>
+          <button
+            onClick={() => router.push("/Myfiles")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "7px 15px",
+              border: "1px solid #E4DFD1",
+              borderRadius: 3,
+              fontSize: 12.5,
+              color: "#4A4636",
+              background: "#fff",
+              cursor: "pointer",
+              fontWeight: 500,
+            }}
+          >
+            <ScanText size={14} /> Talk with my PDF
           </button>
-          <button style={{ background: "none", border: "1px solid #e2e8f0", cursor: "pointer", padding: 7, borderRadius: 8, display: "flex", color: "#64748b" }}>
-            <User size={18} />
+          <button
+            style={{
+              background: "#fff",
+              border: "1px solid #E4DFD1",
+              cursor: "pointer",
+              padding: 8,
+              borderRadius: 4,
+              display: "flex",
+              color: "#8A8570",
+            }}
+          >
+            <User size={17} />
           </button>
         </div>
 
         {/* Chat */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 0" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px 0" }}>
           {messages.length === 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 10, paddingBottom: 60 }}>
-              <div style={{ width: 48, height: 48, background: "#eff6ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <ScanText size={24} color="#2563eb" />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                gap: 12,
+                paddingBottom: 60,
+              }}
+            >
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  background: "#1B1B2F",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ScanText size={22} color="#C9962B" />
               </div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>Ask anything about your PDFs</p>
-              <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
-                Upload documents from the sidebar, then type your question below.
+              <p
+                style={{
+                  fontFamily: "'Fraunces', serif",
+                  fontSize: 17,
+                  fontWeight: 600,
+                  color: "#2A2818",
+                }}
+              >
+                Ask anything about your PDFs
+              </p>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#9A9480",
+                  textAlign: "center",
+                  maxWidth: 280,
+                  lineHeight: 1.6,
+                }}
+              >
+                Upload documents to the shelf, then ask a question below.
               </p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 24 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 18,
+                paddingBottom: 24,
+              }}
+            >
               {messages.map((msg) => {
                 const bookColorMap = generateBookColorMap(msg.results || []);
                 return (
-                  <div key={msg.id} style={{ display: "flex", justifyContent: msg.type === "user" ? "flex-end" : "flex-start", gap: 10 }}>
+                  <div
+                    key={msg.id}
+                    style={{
+                      display: "flex",
+                      justifyContent:
+                        msg.type === "user" ? "flex-end" : "flex-start",
+                      gap: 10,
+                    }}
+                  >
                     {msg.type === "assistant" && (
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#eff6ff", border: "1px solid #bfdbfe", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                        <ScanText size={14} color="#2563eb" />
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          background: "#1B1B2F",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          marginTop: 2,
+                        }}
+                      >
+                        <ScanText size={13} color="#C9962B" />
                       </div>
                     )}
                     <div style={{ maxWidth: "78%" }}>
-                      <div style={{
-                        padding: "10px 14px",
-                        borderRadius: msg.type === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                        background: msg.type === "user" ? "#2563eb" : "#ffffff",
-                        border: msg.type === "assistant" ? "1px solid #e2e8f0" : "none",
-                        color: msg.type === "user" ? "#fff" : "#1e293b",
-                        fontSize: 13,
-                        lineHeight: 1.55,
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                      }}>
+                      <div
+                        style={{
+                          padding: "11px 15px",
+                          borderRadius:
+                            msg.type === "user"
+                              ? "10px 10px 2px 10px"
+                              : "2px 10px 10px 10px",
+                          background:
+                            msg.type === "user" ? "#1B1B2F" : "#ffffff",
+                          border:
+                            msg.type === "assistant"
+                              ? "1px solid #E4DFD1"
+                              : "none",
+                          color: msg.type === "user" ? "#F4E9D8" : "#2A2818",
+                          fontSize: 13.5,
+                          lineHeight: 1.6,
+                          boxShadow:
+                            msg.type === "assistant"
+                              ? "0 1px 2px rgba(42,40,24,0.04)"
+                              : "none",
+                        }}
+                      >
                         {msg.content}
                       </div>
 
-                      {/* Result cards */}
-                      {msg.type === "assistant" && Array.isArray(msg.results) && (
-                        <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-                          {msg.results.length === 0 ? (
-                            <p style={{ fontSize: 12, color: "#94a3b8" }}>No results found.</p>
-                          ) : (
-                            msg.results.map((res, idx) => {
-                              const c = bookColorMap[res.book] || BOOK_COLORS[0];
-                              return (
-                                <div key={idx} style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                                    <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
-                                      {res.book}
-                                    </span>
-                                    <span style={{ fontSize: 11, color: "#94a3b8" }}>Score: {res.score.toFixed(3)}</span>
+                      {/* Result cards — citation slips */}
+                      {msg.type === "assistant" &&
+                        Array.isArray(msg.results) && (
+                          <div
+                            style={{
+                              marginTop: 10,
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 7,
+                            }}
+                          >
+                            {msg.results.length === 0 ? (
+                              <p
+                                style={{
+                                  fontSize: 12,
+                                  color: "#B0AA92",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                No results found.
+                              </p>
+                            ) : (
+                              msg.results.map((res, idx) => {
+                                const c =
+                                  bookColorMap[res.book] || BOOK_COLORS[0];
+                                return (
+                                  <div
+                                    key={idx}
+                                    style={{
+                                      display: "flex",
+                                      background: "#fff",
+                                      border: "1px solid #E4DFD1",
+                                      borderRadius: 3,
+                                      overflow: "hidden",
+                                      boxShadow:
+                                        "0 1px 2px rgba(42,40,24,0.03)",
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: 4,
+                                        background: c.border || c.text,
+                                        flexShrink: 0,
+                                      }}
+                                    />
+                                    <div
+                                      style={{ padding: "10px 14px", flex: 1 }}
+                                    >
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "space-between",
+                                          marginBottom: 6,
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            fontFamily: "'Fraunces', serif",
+                                            fontSize: 11.5,
+                                            fontWeight: 600,
+                                            color: c.text,
+                                          }}
+                                        >
+                                          {res.book}
+                                        </span>
+                                        <span
+                                          style={{
+                                            fontFamily:
+                                              "'IBM Plex Mono', monospace",
+                                            fontSize: 10.5,
+                                            color: "#B0AA92",
+                                          }}
+                                        >
+                                          {res.score.toFixed(3)}
+                                        </span>
+                                      </div>
+                                      <p
+                                        style={{
+                                          fontSize: 12.5,
+                                          color: "#5A5642",
+                                          lineHeight: 1.65,
+                                          margin: 0,
+                                        }}
+                                      >
+                                        {res.text}
+                                      </p>
+                                    </div>
                                   </div>
-                                  <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{res.text}</p>
-                                </div>
-                              );
-                            })
-                          )}
-                          {msg.results.length > 0 && (
-                            <button onClick={() => { setGraphData(msg.results); setGraphModalOpen(true); }}
-                              style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", border: "1px solid #e2e8f0", borderRadius: 20, fontSize: 12, color: "#374151", background: "#fff", cursor: "pointer", fontWeight: 500 }}>
-                              📊 View knowledge graph
-                            </button>
-                          )}
-                        </div>
-                      )}
+                                );
+                              })
+                            )}
+                            {msg.results.length > 0 && (
+                              <button
+                                onClick={() => {
+                                  setGraphData(msg.results);
+                                  setGraphModalOpen(true);
+                                }}
+                                style={{
+                                  alignSelf: "flex-start",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  padding: "7px 14px",
+                                  border: "1px solid #E4DFD1",
+                                  borderRadius: 3,
+                                  fontSize: 11.5,
+                                  color: "#4A4636",
+                                  background: "#fff",
+                                  cursor: "pointer",
+                                  fontWeight: 500,
+                                  marginTop: 2,
+                                }}
+                              >
+                                <Network size={13} color="#C9962B" /> View
+                                knowledge graph
+                              </button>
+                            )}
+                          </div>
+                        )}
                     </div>
                     {msg.type === "user" && (
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                        <User size={14} color="#fff" />
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          background: "#C9962B",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          marginTop: 2,
+                        }}
+                      >
+                        <User size={13} color="#1B1B2F" />
                       </div>
                     )}
                   </div>
@@ -1110,12 +1934,43 @@ export default function PDFChatAssistant() {
               })}
               {querying && (
                 <div style={{ display: "flex", gap: 10 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#eff6ff", border: "1px solid #bfdbfe", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <ScanText size={14} color="#2563eb" />
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: "#1B1B2F",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <ScanText size={13} color="#C9962B" />
                   </div>
-                  <div style={{ padding: "12px 16px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "18px 18px 18px 4px", display: "flex", gap: 4, alignItems: "center" }}>
+                  <div
+                    style={{
+                      padding: "13px 16px",
+                      background: "#fff",
+                      border: "1px solid #E4DFD1",
+                      borderRadius: "2px 10px 10px 10px",
+                      display: "flex",
+                      gap: 4,
+                      alignItems: "center",
+                    }}
+                  >
                     {[0, 0.15, 0.3].map((d, i) => (
-                      <span key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "#cbd5e1", display: "inline-block", animation: `pulse 1.2s ${d}s infinite` }} />
+                      <span
+                        key={i}
+                        style={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: "50%",
+                          background: "#C9962B",
+                          display: "inline-block",
+                          animation: `pulse 1.2s ${d}s infinite`,
+                        }}
+                      />
                     ))}
                   </div>
                 </div>
@@ -1126,53 +1981,148 @@ export default function PDFChatAssistant() {
         </div>
 
         {/* Input bar */}
-        <div style={{ padding: "16px 24px 20px", background: "#fff", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 10, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 14, padding: "10px 12px 10px 16px", transition: "border-color 0.15s" }}>
+        <div
+          style={{
+            padding: "18px 28px 22px",
+            background: "#FAF8F3",
+            borderTop: "1px solid #F0EBDD",
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "space-around",
+              gap: 10,
+              background: "#fff",
+              border: "1px solid #E4DFD1",
+              borderRadius: 8,
+              padding: "11px 12px 11px 16px",
+              transition: "border-color 0.15s",
+              
+            }}
+          >
             <textarea
               value={inputValue}
               onChange={(e) => {
                 setInputValue(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                e.target.style.height =
+                  Math.min(e.target.scrollHeight, 120) + "px";
               }}
               onKeyPress={handleKeyPress}
-              placeholder="Ask a question about your documents..."
+              placeholder="Ask a question about your documents…"
               rows={1}
-              style={{ flex: 1, border: "none", outline: "none", resize: "none", fontSize: 13, background: "transparent", color: "#1e293b", fontFamily: "inherit", lineHeight: 1.6, maxHeight: 120 }}
+              style={{
+                flex: 1,
+                border: "none",
+                outline: "none",
+                resize: "none",
+                fontSize: 13.5,
+                background: "transparent",
+                color: "#2A2818",
+                fontFamily: "inherit",
+                lineHeight: 1.6,
+                maxHeight: 120,
+                alignContent: "center",
+                
+              }}
             />
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || querying}
               style={{
-                padding: "8px 16px", borderRadius: 10, border: "none",
-                background: inputValue.trim() && !querying ? "#2563eb" : "#e2e8f0",
-                color: inputValue.trim() && !querying ? "#fff" : "#94a3b8",
-                cursor: inputValue.trim() && !querying ? "pointer" : "not-allowed",
-                display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, flexShrink: 0, transition: "all 0.15s",
-              }}>
-              <Send size={14} /> Send
+                padding: "9px 17px",
+                borderRadius: 5,
+                border: "none",
+                background:
+                  inputValue.trim() && !querying ? "#1B1B2F" : "#EFEBDF",
+                color: inputValue.trim() && !querying ? "#F4E9D8" : "#B0AA92",
+                cursor:
+                  inputValue.trim() && !querying ? "pointer" : "not-allowed",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 12.5,
+                fontWeight: 600,
+                flexShrink: 0,
+                transition: "all 0.15s",
+              }}
+            >
+              <Send size={13} /> Send
             </button>
           </div>
         </div>
       </div>
 
       {/* ── Graph Modal ── */}
-      <Modal isOpen={graphModalOpen} onRequestClose={() => setGraphModalOpen(false)} contentLabel="Knowledge Graph"
+      <Modal
+        isOpen={graphModalOpen}
+        onRequestClose={() => setGraphModalOpen(false)}
+        contentLabel="Knowledge Graph"
         style={{
-          overlay: { background: "rgba(15,23,42,0.5)", zIndex: 1000 },
-          content: { top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "90%", maxWidth: 1000, height: "80%", padding: 0, borderRadius: 16, border: "1px solid #e2e8f0", overflow: "hidden" },
-        }}>
-        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-          <div style={{ padding: "16px 20px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <p style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>Knowledge Graph</p>
-            <button onClick={() => setGraphModalOpen(false)}
-              style={{ padding: "5px 14px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12, background: "#fff", cursor: "pointer", color: "#374151", fontWeight: 500 }}>
+          overlay: { background: "rgba(27,27,47,0.6)", zIndex: 1000 },
+          content: {
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%,-50%)",
+            width: "90%",
+            maxWidth: 1000,
+            height: "80%",
+            padding: 0,
+            borderRadius: 6,
+            border: "1px solid #E4DFD1",
+            overflow: "hidden",
+          },
+        }}
+      >
+        <div
+          style={{ display: "flex", flexDirection: "column", height: "100%" }}
+        >
+          <div
+            style={{
+              padding: "17px 22px",
+              borderBottom: "1px solid #E4DFD1",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background: "#FAF8F3",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "'Fraunces', serif",
+                fontSize: 16,
+                fontWeight: 600,
+                color: "#2A2818",
+              }}
+            >
+              Knowledge Graph
+            </p>
+            <button
+              onClick={() => setGraphModalOpen(false)}
+              style={{
+                padding: "6px 15px",
+                border: "1px solid #E4DFD1",
+                borderRadius: 4,
+                fontSize: 12,
+                background: "#fff",
+                cursor: "pointer",
+                color: "#4A4636",
+                fontWeight: 500,
+              }}
+            >
               Close
             </button>
           </div>
           <div style={{ flex: 1 }}>
-            <ReactFlow nodes={generateGraphNodes(graphData)} edges={generateGraphEdges(graphData)} fitView onNodeClick={handleNodeClick}>
-              <Background color="#f1f5f9" gap={20} />
+            <ReactFlow
+              nodes={generateGraphNodes(graphData)}
+              edges={generateGraphEdges(graphData)}
+              fitView
+              onNodeClick={handleNodeClick}
+            >
+              <Background color="#EFEBDF" gap={20} />
               <Controls />
             </ReactFlow>
           </div>
@@ -1180,31 +2130,69 @@ export default function PDFChatAssistant() {
       </Modal>
 
       {/* ── Snippet Modal ── */}
-      <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} contentLabel="Full Snippet"
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        contentLabel="Full Snippet"
         style={{
-          overlay: { background: "rgba(15,23,42,0.5)", zIndex: 1000 },
-          content: { top: "50%", left: "50%", transform: "translate(-50%,-50%)", maxWidth: 560, width: "90%", padding: 0, borderRadius: 14, border: "1px solid #e2e8f0" },
-        }}>
-        <div style={{ padding: "20px 24px" }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", marginBottom: 12 }}>Full snippet</p>
-          <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>{selectedText}</p>
-          <button onClick={() => setModalIsOpen(false)}
-            style={{ marginTop: 20, padding: "7px 18px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, background: "#fff", cursor: "pointer", fontWeight: 500, color: "#374151" }}>
+          overlay: { background: "rgba(27,27,47,0.6)", zIndex: 1000 },
+          content: {
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%,-50%)",
+            maxWidth: 560,
+            width: "90%",
+            padding: 0,
+            borderRadius: 6,
+            border: "1px solid #E4DFD1",
+          },
+        }}
+      >
+        <div style={{ padding: "22px 26px" }}>
+          <p
+            style={{
+              fontFamily: "'Fraunces', serif",
+              fontSize: 15,
+              fontWeight: 600,
+              color: "#2A2818",
+              marginBottom: 12,
+            }}
+          >
+            Full snippet
+          </p>
+          <p style={{ fontSize: 13.5, color: "#5A5642", lineHeight: 1.75 }}>
+            {selectedText}
+          </p>
+          <button
+            onClick={() => setModalIsOpen(false)}
+            style={{
+              marginTop: 20,
+              padding: "8px 18px",
+              border: "1px solid #E4DFD1",
+              borderRadius: 4,
+              fontSize: 13,
+              background: "#fff",
+              cursor: "pointer",
+              fontWeight: 500,
+              color: "#4A4636",
+            }}
+          >
             Close
           </button>
         </div>
       </Modal>
 
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
         @keyframes pulse {
-          0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+          0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
           40% { opacity: 1; transform: scale(1); }
         }
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
-        textarea::placeholder { color: #94a3b8; }
+        ::-webkit-scrollbar-thumb { background: #D6D0C0; border-radius: 4px; }
+        textarea::placeholder { color: #B0AA92; }
       `}</style>
     </div>
   );
