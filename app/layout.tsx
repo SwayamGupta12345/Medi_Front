@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Medicinal Project',
-  description: 'Developed for easily medical research and paper understanding.'
+  description: 'Developed for easily medical research and paper understanding.',
 }
 
 export default function RootLayout({
